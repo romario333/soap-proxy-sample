@@ -4,9 +4,9 @@ var express = require('express');
 var app = express();
 var _ = require('lodash');
 var request = require('request');
-var parseXml = require('xml2js').parseString;
+var xml2js = require('xml2js').parseString;
 
-var convertSoap = require('fs').readFileSync('soap/convert.xml', {encoding: 'utf8'});
+var soapRequest = require('fs').readFileSync('soap/convert.xml', {encoding: 'utf8'});
 
 app.get('/api/convert', function (req, res) {
   // http://www.webservicex.net/WS/WSDetails.aspx?WSID=21&CATID=13
@@ -17,15 +17,16 @@ app.get('/api/convert', function (req, res) {
     headers: {
       'Content-Type': 'application/soap+xml; charset=utf-8'
     },
-    body: _.template(convertSoap, {value: req.query.value, from: req.query.from, to: req.query.to})
+    body: _.template(soapRequest, {value: req.query.value, from: req.query.from, to: req.query.to})
   }, function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      parseXml(body, function(err, bodyJson) {
+      xml2js(body, function(err, bodyJson) {
         if (err) {
           res.status(500).send({
             error: 'errorParsingXml',
             xml: body
           });
+          return;
         }
 
         res.send(findProperty(bodyJson, 'ChangeLengthUnitResult'));
@@ -40,10 +41,7 @@ app.get('/api/convert', function (req, res) {
       })
     }
   });
-
-
 });
-
 
 app.use(express.static('app'));
 
