@@ -23,8 +23,10 @@ app.get('/api/convert', function (req, res) {
       xml2js(body, function(err, bodyJson) {
         if (err) {
           res.status(500).send({
-            code: 'errorParsingXml',
-            body: body
+            error: {
+              code: 'errorParsingXml',
+              body: body
+            }
           });
           return;
         }
